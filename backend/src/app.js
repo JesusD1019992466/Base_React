@@ -17,10 +17,10 @@ app.use('/api/tasks', taskRoutes);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
-  res.json({ message: 'API de Lista de Tareas funcionando' });
+  res.json({ message: 'API de Lista de Tareas funcionando en Railway 🚀' });
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor backend corriendo en: http://localhost:${PORT}`);
+  console.log(`🚀 Servidor backend corriendo en puerto: ${PORT}`);
 });

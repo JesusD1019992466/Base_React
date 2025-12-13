@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+//// Inkreible
+
 console.log('🔧 Configuración de DB cargada:');
 console.log('Host:', process.env.DB_HOST);
 console.log('Usuario:', process.env.DB_USER);

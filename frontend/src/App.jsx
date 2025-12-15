@@ -1,115 +1,62 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import TodoItem from './todoitem.jsx';
-import { taskService } from './services/api';
+
+const BASE_URL = 'http://localhost:5000/tasks';
 
 export default function App() {
   const [tareas, setTareas] = useState([]);
   const [input, setInput] = useState('');
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState(false);
 
-  // 👉 Cargar tareas desde la API al iniciar
-  useEffect(() => {
-    cargarTareas();
-  }, []);
+  // ❌ Quitamos carga inicial porque no existe GET aún
+  // useEffect(() => {
+  //   cargarTareas();
+  // }, []);
 
-  const cargarTareas = async () => {
-    setCargando(true);
-    try {
-      const datos = await taskService.getAll();
-      // Adaptar datos de la API a tu estructura
-      const tareasAdaptadas = datos.map(tarea => ({
-        id: tarea.id,
-        texto: tarea.title,
-        completada: tarea.completed
-      }));
-      setTareas(tareasAdaptadas);
-    } catch (error) {
-      console.error('Error cargando tareas:', error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  // 👉 Agregar tarea a la API
+  // ➕ Agregar tarea
   const agregarTareas = async () => {
-    if (input.trim()) {
-      try {
-        const nuevaTareaAPI = await taskService.create({
-          title: input.trim(),
-          description: '',
-          completed: false
-        });
-        
-        // Actualizar estado local con la tarea de la API
-        const nuevaTarea = {
-          id: nuevaTareaAPI.id,
-          texto: nuevaTareaAPI.title,
-          completada: nuevaTareaAPI.completed
-        };
-        
-        setTareas([...tareas, nuevaTarea]);
-        setInput('');
-      } catch (error) {
-        console.error('Error agregando tarea:', error);
-      }
-    }
-  };
+    if (!input.trim()) return;
 
-  // 👉 Marcar tarea como completada en la API
-  const toggleComplete = async (id) => {
     try {
-      const tarea = tareas.find(t => t.id === id);
-      if (!tarea) return;
-      
-      await taskService.update(id, {
-        title: tarea.texto,
-        description: '',
-        completed: !tarea.completada
+      const response = await axios.post(BASE_URL, {
+        title: input.trim()
       });
-      
-      // Actualizar estado local
-      setTareas(
-        tareas.map((tarea) =>
-          tarea.id === id ? { ...tarea, completada: !tarea.completada } : tarea
-        )
-      );
+
+      const nuevaTarea = {
+        id: response.data.task?.id || Date.now(),
+        texto: input.trim(),
+        completada: false
+      };
+
+      setTareas([...tareas, nuevaTarea]);
+      setInput('');
     } catch (error) {
-      console.error('Error actualizando tarea:', error);
+      console.error('Error agregando tarea:', error);
     }
   };
 
-  // 👉 Eliminar tarea de la API
-  const eliminarTarea = async (id) => {
-    try {
-      await taskService.delete(id);
-      // Actualizar estado local
-      setTareas(tareas.filter((tarea) => tarea.id !== id));
-    } catch (error) {
-      console.error('Error eliminando tarea:', error);
-    }
+  // 🔄 Completar tarea (solo local por ahora)
+  const toggleComplete = (id) => {
+    setTareas(
+      tareas.map((t) =>
+        t.id === id ? { ...t, completada: !t.completada } : t
+      )
+    );
   };
 
-  // 👉 Editar tarea en la API
-  const editarTarea = async (id, nuevoTexto) => {
-    try {
-      const tarea = tareas.find(t => t.id === id);
-      if (!tarea) return;
-      
-      await taskService.update(id, {
-        title: nuevoTexto,
-        description: '',
-        completed: tarea.completada
-      });
-      
-      // Actualizar estado local
-      setTareas(
-        tareas.map((tarea) =>
-          tarea.id === id ? { ...tarea, texto: nuevoTexto } : tarea
-        )
-      );
-    } catch (error) {
-      console.error('Error editando tarea:', error);
-    }
+  // ❌ Eliminar tarea (solo local)
+  const eliminarTarea = (id) => {
+    setTareas(tareas.filter((t) => t.id !== id));
+  };
+
+  // ✏️ Editar tarea (solo local)
+  const editarTarea = (id, nuevoTexto) => {
+    setTareas(
+      tareas.map((t) =>
+        t.id === id ? { ...t, texto: nuevoTexto } : t
+      )
+    );
   };
 
   return (
@@ -118,7 +65,6 @@ export default function App() {
         MI LISTA DE TAREAS REACT
       </h1>
 
-      {/* Input + botón para agregar */}
       <div className="flex gap-3 mb-4">
         <input
           placeholder="Nueva tarea"
@@ -126,7 +72,7 @@ export default function App() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && agregarTareas()} // Enter agrega tarea
+          onKeyDown={(e) => e.key === 'Enter' && agregarTareas()}
         />
         <button
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -136,24 +82,15 @@ export default function App() {
         </button>
       </div>
 
-      {/* Lista de tareas */}
-      <div>
-        {cargando ? (
-          <p className="text-center text-gray-500">Cargando tareas...</p>
-        ) : tareas.length === 0 ? (
-          <p className="text-center text-gray-500">No hay tareas aún 🚀</p>
-        ) : (
-          tareas.map((tarea) => (
-            <TodoItem
-              key={tarea.id}
-              tarea={tarea}
-              toggleComplete={() => toggleComplete(tarea.id)}
-              eliminarTarea={() => eliminarTarea(tarea.id)}
-              editarTarea={(nuevoTexto) => editarTarea(tarea.id, nuevoTexto)}
-            />
-          ))
-        )}
-      </div>
+      {tareas.map((tarea) => (
+        <TodoItem
+          key={tarea.id}
+          tarea={tarea}
+          toggleComplete={() => toggleComplete(tarea.id)}
+          eliminarTarea={() => eliminarTarea(tarea.id)}
+          editarTarea={(nuevoTexto) => editarTarea(tarea.id, nuevoTexto)}
+        />
+      ))}
     </div>
   );
 }

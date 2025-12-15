@@ -40,19 +40,6 @@ export default function App() {
     }
   };
 
-  // ✅ Completar tarea
-  const toggleComplete = async (tarea) => {
-    try {
-      await axios.put(`${BASE_URL}/tasks/${tarea.id}`, {
-        title: tarea.title,
-        done: tarea.done ? 0 : 1,
-      });
-      cargarTareas();
-    } catch (error) {
-      console.error("Error actualizando tarea:", error);
-    }
-  };
-
   // ❌ Eliminar tarea
   const eliminarTarea = async (id) => {
     try {
@@ -63,25 +50,13 @@ export default function App() {
     }
   };
 
-  // ✏️ Editar tarea
-  const editarTarea = async (id, nuevoTexto, done) => {
-    try {
-      await axios.put(`${BASE_URL}/tasks/${id}`, {
-        title: nuevoTexto,
-        done,
-      });
-      cargarTareas();
-    } catch (error) {
-      console.error("Error editando tarea:", error);
-    }
-  };
-
   return (
     <div className="max-w-md mx-auto mt-10">
       <h1 className="text-3xl font-bold mb-5 text-center">
         MI LISTA DE TAREAS REACT
       </h1>
 
+      {/* Input */}
       <div className="flex gap-3 mb-4">
         <input
           placeholder="Nueva tarea"
@@ -103,21 +78,29 @@ export default function App() {
         <p className="text-center text-gray-500">Cargando tareas...</p>
       )}
 
-      {tareas.map((tarea) => (
-        <TodoItem
-          key={tarea.id}
-          tarea={{
-            id: tarea.id,
-            texto: tarea.title,
-            completada: !!tarea.done,
-          }}
-          toggleComplete={() => toggleComplete(tarea)}
-          eliminarTarea={() => eliminarTarea(tarea.id)}
-          editarTarea={(nuevoTexto) =>
-            editarTarea(tarea.id, nuevoTexto, tarea.done)
-          }
-        />
-      ))}
+      {/* Lista */}
+      <ul className="space-y-3">
+        {tareas.map((tarea) => (
+          <li
+            key={tarea.id}
+            className="flex justify-between items-center p-3 bg-white shadow rounded"
+          >
+            <span className="text-gray-800">{tarea.title}</span>
+            <button
+              onClick={() => eliminarTarea(tarea.id)}
+              className="text-red-500 hover:text-red-700 font-semibold"
+            >
+              Eliminar
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {tareas.length === 0 && !cargando && (
+        <p className="text-center text-gray-400 mt-6">
+          No hay tareas todavía
+        </p>
+      )}
     </div>
   );
 }

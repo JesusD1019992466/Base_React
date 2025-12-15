@@ -28,10 +28,20 @@ db.query(`
 });
 
 /* ===========================
-   RUTA BASE
+   RUTA BASE (/)
+   DEVUELVE LAS TAREAS
 =========================== */
 app.get('/', (req, res) => {
-  res.send('🚀 Backend funcionando correctamente');
+  db.query(
+    'SELECT * FROM tasks ORDER BY created_at DESC',
+    (err, results) => {
+      if (err) {
+        console.error('❌ Error obteniendo tasks:', err.message);
+        return res.status(500).json([]);
+      }
+      res.json(results || []);
+    }
+  );
 });
 
 /* ===========================

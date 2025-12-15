@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import TodoItem from "./todoitem.jsx";
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 

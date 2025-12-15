@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import TodoItem from './todoitem.jsx';
 
-const BASE_URL = 'http://localhost:5000/tasks';
+const BASE_URL =  import.meta.env.VITE_API_URL
 
 export default function App() {
   const [tareas, setTareas] = useState([]);
